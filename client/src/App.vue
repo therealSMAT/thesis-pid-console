@@ -9,6 +9,13 @@
                 {{ tripDetails }}
               </span>
             </div>
+            <div class="flex items-center max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 space-x-2 mt-2" v-if="tripStarted">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <p>Lat: {{ location.lat }}, Long: {{ location.long }}  </p>
+              </div>
           </header>
           <main>
             <div class="max-w-2xl mx-auto sm:px-6 lg:px-2">
@@ -42,7 +49,9 @@
 </template>
 
 <script>
-import ActionButton from './components/ActionButton.vue'
+import mqtt from 'mqtt';
+import ActionButton from './components/ActionButton.vue';
+
 export default {
   name: 'App',
   data() {
@@ -50,7 +59,14 @@ export default {
       tripStarted: false,
       routes: [],
       activeTripId: null,
+      location: {
+        lat: null,
+        long: null
+      }
     }
+  },
+  mounted() {
+    this.createConnection();
   },
   computed: {
     tripDetails() {
@@ -61,6 +77,9 @@ export default {
     },
     tripDetailClass() {
       return `bg-${this.tripTheme}-100 text-${this.tripTheme}-800`;
+    },
+    clientId() {
+      return 'mqttjs_' + Math.random().toString(16).substr(2, 8)
     },
   },
   methods: {
@@ -78,7 +97,33 @@ export default {
     async setActiveRoute(tripId) {
       this.activeTripId = tripId;
       await this.$http.get(`/set-bus-stop?routeId=${tripId}`);
-    }
+    },
+    createConnection() {
+      this.client = mqtt.connect(process.env.VUE_APP_MQTT_BROKER, { clientId: this.clientId });
+      this.subscribeToTopics();
+      this.handleErrors();
+      this.waitForMessages();
+    },
+    handleErrors() {
+      this.client.on("error", (err) => {
+        console.log("Connection error: ", err);
+        this.client.end();
+      });
+    },
+    subscribeToTopics() {
+      this.client.on("connect", () => {
+        this.client.subscribe("transport/location");
+        console.log("Subscribed successfully!");
+      });
+    },
+    waitForMessages() {
+      this.client.on("message", (topic, message) => {
+        if (topic === "transport/location") {
+          let location = JSON.parse(message.toString());
+          this.$set(this, "location", location);
+        }
+      });
+    },
   },
   components: { ActionButton }
 }
