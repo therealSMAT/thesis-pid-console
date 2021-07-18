@@ -25,7 +25,7 @@ const getTigrDataFormat = () => {
 }
 
 const sendTigrEvent = async (data) => {
-    return await httpInstance.post('http://10.224.2.124:9000/tigr/events', data);
+    return await httpInstance.post(`${process.env.TIGR_SERVER}/tigr/events`, data);
 }
 
 exports.sendTripStartedEvent = async ({ long, lat }) => {
