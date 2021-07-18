@@ -18,20 +18,13 @@
               </div>
           </header>
           <main>
-            <div class="flex justify-around max-w-4xl mx-auto sm:px-6 lg:px-2 space-x-2">
+            <div class="flex justify-around max-w-2xl mx-auto sm:px-6 lg:px-2 space-x-2">
               <div class="px-4 py-8 sm:px-0 w-full">
                 <div class="border-4 border-dashed border-gray-200 rounded-lg h-auto p-4">
                   <div class="grid xs:grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2">
                     <ActionButton @click="startTrip" v-if="!tripStarted">Start Trip</ActionButton>
                     <ActionButton @click.prevent="stopTrip" v-if="tripStarted">End Trip</ActionButton>
                   </div>
-                </div>
-              </div>
-
-              <div class="px-4 py-8 sm:px-0 w-full">
-                <div class="border-4 border-dashed border-gray-200 rounded-lg h-64 p-4">
-                  <video id="video" ref="video" autoplay muted>Video stream not available.</video>
-                  <button id="startbutton" @click="startRecording">Start recording</button>
                 </div>
               </div>
             </div>
@@ -47,6 +40,15 @@
                     </ActionButton>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <div class="px-4 py-8 sm:px-0 fixed" style="right: 300px;top:80px;" v-show="tripStarted">
+              <div class="border-4 border-dashed border-gray-200 rounded-lg h-auto p-4">
+                <video ref="video" width="320" height="240" muted loop>
+                  <source src="/public_transport.mp4" type="video/mp4" />
+                  Video stream not available.
+                </video>
               </div>
             </div>
           </main>
@@ -70,17 +72,11 @@ export default {
         lat: null,
         long: null
       },
-      webCam: {
-        streaming: false,
-        canvas: null,
-        video: this.$refs.video,
-        photo: null,
-      }
+      webCam: {}
     }
   },
   mounted() {
     this.createConnection();
-    console.log(this.$refs.video);
   },
   computed: {
     tripDetails() {
@@ -101,6 +97,7 @@ export default {
       this.tripStarted = true;
       const { data: { routes } } = await this.$http.get('/start-trip');
       this.routes = routes.data;
+      this.$refs.video.play();
     },
     async stopTrip() {
       this.tripStarted = false;
@@ -138,21 +135,6 @@ export default {
         }
       });
     },
-    startRecording() {
-      navigator.mediaDevices
-        .getUserMedia({ video: true, audio: true })
-        .then(stream => {
-          this.$refs.video.srcObject = stream;
-          this.startRecording(this.webCam.video.captureStream())
-        });
-    },
-    getStream(stream) {
-      let recorder = new MediaRecorder(stream);
-      let data = [];
-
-      recorder.onDataAvialable = event => data.push(event);
-      recorder.start();
-    }
   },
   components: { ActionButton }
 }
