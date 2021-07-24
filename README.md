@@ -12,7 +12,8 @@ This repository powers `client1` and relies on a central broker to send messages
 
 ## Requirements
 Nodejs 14+, eclipse-mosquitto MQTT broker 3.1.
-For the sake of testing, a test broker at `https://test.mosquitto.org/` can be used but is not encouraged.
+
+For the sake of testing, a sample broker at https://test.mosquitto.org/ can be used but is not encouraged.
 
 **It is advisable to setup the mosquitto mqtt broker with docker. Visit https://hub.docker.com/_/eclipse-mosquitto for more information**
 
@@ -30,3 +31,17 @@ To install, clone this repository. You will notice two directories: `client` and
 - Open `.env` and set the url for the `VUE_APP_MQTT_BROKER` as the same url used on the server.
 - Run `npm install` to install all required dependencies.
 - Run `npm run serve` to start your application. It should now be running on http://localhost:8080
+
+## Usage
+When the start trip button is clicked, a request will be made to the server to fetch all the route information. 
+
+This will broadcast a message over MQTT to the `/transport/ride/start` topic, which is being subscribed to by the [passenger information display module](https://github.com/therealSMAT/thesis-pid-client). The passenger information display module collects this route information and displays inform of a trip timeline to the passengers. 
+
+The [gnss-module](https://github.com/therealSMAT/thesis-gnss-module) responsible for collecting and sending gps information also subscribes to the `/transport/ride/start`. On getting a message, the gnss module begins to publish geolocation information on the `/transport/location` topic. The operator console listens on the `/transport/location`, and displays the real-time geolocation information.
+
+Finally, in accordance with the TIGR (http://www.digigroupinformatica.it/download/TIGR%20protocol%20-%20Technical%20specifications%20-%20EBSF_2%20Ed1.6%20(gen%202019).pdf) for smart transportation systems, a TIGR compliant `TRIP_STARTED` identifier will be sent to a TIGR server for further processing.
+
+Similarly, relevant information will be sent and published over respective channels when other events such as `change current location`, `stop trip` occur.
+
+## Security Testing
+Small scripts were written to automate the testing for certain systems of the test bed. The script can be found [here](https://github.com/therealSMAT/thesis-sec-tests)
