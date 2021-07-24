@@ -39,7 +39,7 @@ This will broadcast a message over MQTT to the `/transport/ride/start` topic, wh
 
 The [gnss-module](https://github.com/therealSMAT/thesis-gnss-module) responsible for collecting and sending gps information also subscribes to the `/transport/ride/start`. On getting a message, the gnss module begins to publish geolocation information on the `/transport/location` topic. The operator console listens on the `/transport/location`, and displays the real-time geolocation information.
 
-Finally, in accordance with the TIGR (http://www.digigroupinformatica.it/download/TIGR%20protocol%20-%20Technical%20specifications%20-%20EBSF_2%20Ed1.6%20(gen%202019).pdf) for smart transportation systems, a TIGR compliant `TRIP_STARTED` identifier will be sent to a TIGR server for further processing.
+Finally, in accordance with the [Tele-diagnostics for Intelligent Garage in Real-time (TIGR)](http://www.digigroupinformatica.it/download/TIGR%20protocol%20-%20Technical%20specifications%20-%20EBSF_2%20Ed1.6%20(gen%202019).pdf) specifications for smart transportation systems, a TIGR compliant `TRIP_STARTED` identifier will be sent to a TIGR server for further processing.
 
 Similarly, relevant information will be sent and published over respective channels when other events such as `change current location`, `stop trip` occur.
 
